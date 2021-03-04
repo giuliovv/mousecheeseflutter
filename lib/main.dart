@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wifi_iot/wifi_iot.dart';
+import 'dart:io';
 
 import 'package:udp/udp.dart';
 
@@ -45,11 +46,15 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> sendCommand(forward, backward, left, right, stop) async {
-    var sender = await UDP.bind(Endpoint.any(port: Port(4210)));
+    var multicastEndpoint2 = Endpoint.multicast(InternetAddress("192.168.4.2"), port: Port(4210));
+    var multicastEndpoint3 = Endpoint.multicast(InternetAddress("192.168.4.3"), port: Port(4210));
+    var sender = await UDP.bind(Endpoint.any(port: Port(65000)));
     var stringToSend = '{"forward":"'+forward.toString()+'",'+'"backward":"'+backward.toString()+'","left":"'+left.toString()+'","right":"'+right.toString()+'","stop":"'+stop.toString()+'"}';
     try {
-      var dataLength = await sender.send(stringToSend.codeUnits,
-          Endpoint.broadcast(port: Port(4210)));
+      await sender.send(stringToSend.codeUnits,
+          multicastEndpoint2);
+      await sender.send(stringToSend.codeUnits,
+          multicastEndpoint3);
     } catch (error) {
       _scaffoldKey.currentState.showSnackBar(
           SnackBar(

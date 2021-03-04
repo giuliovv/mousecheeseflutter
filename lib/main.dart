@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:wifi_iot/wifi_iot.dart';
+
+import 'package:udp/udp.dart';
 
 const String STA_DEFAULT_SSID = "chair";
 const String STA_DEFAULT_PASSWORD = "password";
@@ -44,22 +45,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> sendCommand(forward, backward, left, right, stop) async {
-    var url = 'http://192.168.4.1/data/?sensor_reading={"forward":"'+forward.toString()+'",'+'"backward":"'+backward.toString()+'","left":"'+left.toString()+'","right":"'+right.toString()+'","stop":"'+stop.toString()+'"}';
+    var sender = await UDP.bind(Endpoint.any(port: Port(4210)));
+    var stringToSend = '{"forward":"'+forward.toString()+'",'+'"backward":"'+backward.toString()+'","left":"'+left.toString()+'","right":"'+right.toString()+'","stop":"'+stop.toString()+'"}';
     try {
-      var result = await http.get(url);
-      if (result.body != "OK") {
-        _scaffoldKey.currentState.showSnackBar(
-            SnackBar(
-              content: Text('Error: you are probably not be connected to the chair.'),
-              duration: const Duration(seconds: 5),
-              action: SnackBarAction(
-                label: 'Try to connect',
-                onPressed: () {
-                  connetti();
-                },
-              ),
-            ));
-      }
+      var dataLength = await sender.send(stringToSend.codeUnits,
+          Endpoint.broadcast(port: Port(4210)));
     } catch (error) {
       _scaffoldKey.currentState.showSnackBar(
           SnackBar(
@@ -73,7 +63,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ));
     }
-
+    sender.close();
   }
 
   @override

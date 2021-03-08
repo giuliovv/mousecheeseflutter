@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:wifi_iot/wifi_iot.dart';
 import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:udp/udp.dart';
 
 const String STA_DEFAULT_SSID = "chair";
 const String STA_DEFAULT_PASSWORD = "password";
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = new GlobalKey<ScaffoldMessengerState>();
 
 void main() {
   runApp(MyApp());
@@ -16,6 +18,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Mouse&Cheese',
+      scaffoldMessengerKey: scaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.red,
@@ -36,7 +39,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   Future<void> connetti() async {
     WiFiForIoTPlugin.connect(STA_DEFAULT_SSID,
@@ -56,7 +58,7 @@ class _MyHomePageState extends State<MyHomePage> {
       await sender.send(stringToSend.codeUnits,
           multicastEndpoint3);
     } catch (error) {
-      _scaffoldKey.currentState.showSnackBar(
+      scaffoldMessengerKey.currentState.showSnackBar(
           SnackBar(
             content: Text('Error: ' + error.toString()),
             duration: const Duration(seconds: 5),
@@ -82,7 +84,6 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.lightBlue,
-      key: _scaffoldKey,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -131,7 +132,7 @@ class _MyHomePageState extends State<MyHomePage> {
               },
             ),
             SizedBox(height: 50.0),
-            OutlineButton(
+            OutlinedButton(
               onPressed: () {
                 sendCommand(0,0,0,0,1);
               },
